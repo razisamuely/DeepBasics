@@ -1,0 +1,11 @@
+seaborn
+matplotlib
+pandas 
+numpy 
+tqdm
+loguru
+pathlib
+scipy
+pytest
+gdown
+
