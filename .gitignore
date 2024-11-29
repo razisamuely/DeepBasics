@@ -164,3 +164,4 @@ cython_debug/
 venv/*
 .venv/*
 neural_net_from_scratch/data/*
+.vscode/*
