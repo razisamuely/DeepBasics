@@ -1,5 +1,5 @@
 import numpy as np
-from neural_net_from_scratch.src.optimizers.sgd import SGD
+from neural_net_from_scratch.src.optimizers.SGD import SGD
 from neural_net_from_scratch.src.losses.least_squares import LeastSquaresLoss
 import matplotlib.pyplot as plt 
 

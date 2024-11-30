@@ -1,7 +1,7 @@
 import unittest
 import pytest
 import numpy as np
-from src.optimizers.sgd import SGD, SGDMomentum
+from neural_net_from_scratch.src.optimizers.SGD import SGD, SGDMomentum
 
 
 class TestOptimizer(unittest.TestCase):
