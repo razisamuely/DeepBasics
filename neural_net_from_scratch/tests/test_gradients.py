@@ -1,6 +1,7 @@
-from neural_net_from_scratch.src.utils.loss_functions import SoftmaxLoss
+from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
 import numpy as np
 import matplotlib.pyplot as plt
+from neural_net_from_scratch.src.utils.utils import one_hot
 
 EPSILON = 1e-5
 N_TESTS = 8
@@ -9,9 +10,10 @@ N_FEATURES = 5
 N_CLASSES = 3
 INIT_SCALE = 0.01
 PLOT_FILE_PATH = 'neural_net_from_scratch/artifacts/gradient_test.png'
+
+
 def compute_gradient_errors(sfml, X, W, y, d, epsilon):
-    """Compute zero and first order errors for gradient testing"""
-    y_one_hot = sfml.one_hot(y, N_CLASSES)
+    y_one_hot = one_hot(y, N_CLASSES)
     net_output = sfml.forward(X, W)
     loss_0 = sfml.cross_entropy_loss(net_output, y_one_hot)
     
@@ -30,7 +32,7 @@ def compute_gradient_errors(sfml, X, W, y, d, epsilon):
         loss_k = sfml.cross_entropy_loss(net_output_perturbed, y_one_hot)
 
         zero_order[k] = abs(loss_k - loss_0)
-        first_order[k] = abs(loss_k - (loss_0 + eps_k * np.sum(sfml.gradients(X, y, net_output, W) * d)))
+        first_order[k] = abs(loss_k - (loss_0 + eps_k * np.sum(sfml.gradients(X, y, W) * d)))
 
         ratio = "" if k == 0 else f"{first_order[k]/first_order[k-1]:.3f}"
         print(f"{k+1}\t{zero_order[k]:.2e}\t{first_order[k]:.2e}\t{ratio}")

@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from neural_net_from_scratch.src.utils.loss_functions import SoftmaxLoss
+from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
 
 # Constants
 N_CLASSES = 4
@@ -27,7 +27,6 @@ def test_softmax(softmax_loss, simple_data):
     logits, _ = simple_data
     probs = softmax_loss.sofotmax(logits)
     
-    # Test probability properties
     assert np.allclose(np.sum(probs, axis=1), 1.0), "Probabilities should sum to 1"
     assert np.all(probs >= 0), "Probabilities should be non-negative"
     assert np.all(probs <= 1), "Probabilities should be <= 1"
