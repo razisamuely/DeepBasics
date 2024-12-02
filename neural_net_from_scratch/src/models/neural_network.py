@@ -17,6 +17,7 @@ class NeuralNetwork:
         self.weights = []
         self.outputs = []  # To store intermediate outputs during forward pass
         self._initialize_parameters()
+        self.grad = True
 
     def _initialize_parameters(self):
         """Initialize weights for all layers."""
@@ -26,9 +27,15 @@ class NeuralNetwork:
                 np.random.randn(self.layer_sizes[i + 1], self.layer_sizes[i] + 1) * np.sqrt(2 / (self.layer_sizes[i]))
             )
 
+    def no_grad(self, bool):
+        self.grad = bool
+        print(f'The neural network will {"NOT" if not self.grad else ""} follow the gradients')
+
+
     def forward(self, X):
         """
         Perform a forward pass through the network.
+        Keeping track of the gradients only if self.grad is True
 
         Args:
             X (ndarray): Input data of shape (n_features, n_samples).
@@ -37,27 +44,33 @@ class NeuralNetwork:
             ndarray: Output of the network.
         """
 
-        self.outputs = []  # Clear previous outputs
-        self.pre_activations = []  # To store pre-activation values
-        X = np.vstack([X, np.ones(X.shape[1])])  # Augment input with bias
-        self.outputs.append(X)
+        self.outputs = []  # clear previous outputs
+        self.pre_activations = []  # to store pre-activation values
+        X = np.vstack([X, np.ones(X.shape[1])])  # augment input with bias instead of keeping a "b" variable
+
+        if self.grad:
+            self.outputs.append(X)
 
         for i, W in enumerate(self.weights):
-            Z = W @ X  # Pre-activation value
-            self.pre_activations.append(Z)
+            Z = W @ X
             if i != len(self.weights) - 1:
                 if self.activation_function is not None:
                     X = self.activation_function.activation(Z)
                 else:
                     X = Z
-                X = np.vstack([X, np.ones(X.shape[1])])  # Add bias for the next layer
+                X = np.vstack([X, np.ones(X.shape[1])])  # add the bias for the next layer
             else:
                 X = Z
-            self.outputs.append(X)
+
+            if self.grad:
+                self.pre_activations.append(Z)
+                self.outputs.append(X)
 
         if self.last_activation_function is not None:
             X = self.last_activation_function.activation(X)
-            self.outputs[-1] = X  # Replace the last output with the final activated output
+
+            if self.grad:
+                self.outputs[-1] = X  # replace the last output with the final activated output
         return X
 
     def backward(self, x, y):
@@ -71,27 +84,41 @@ class NeuralNetwork:
         Returns:
             list: Gradients for each weight matrix in the network.
         """
-        gradients = []
-        # Compute the error at the output layer
-        final_output = self.outputs[-1]
-        error = final_output - y  # Gradient of loss wrt output
-        if self.last_activation_function:
-            error *= self.last_activation_function.derivative(self.pre_activations[-1])  # Use pre-activation
+        assert self.grad and len(self.outputs) != 0 and len(self.pre_activations) != 0,\
+            "Need to define grad=True and run forward prop before performing backprop"
 
-        # Backpropagation through each layer
+
+        gradients = []
+        final_output = self.outputs[-1]
+
+        # first calculate the error between prediction and label
+        error = final_output - y
+
+        # calculate the derivative of the last activation function and multiply it by the error (first delta term)
+        if self.last_activation_function:
+            error *= self.last_activation_function.derivative(self.pre_activations[-1])
+
+        # backpropagation through each layer
         for i in reversed(range(len(self.weights))):
+            # get output of the ith layer
             output = self.outputs[i]
+
+            # calculate dw using delta * output (normalize by batch size)
             grad_w = error @ output.T / x.shape[1]
             gradients.insert(0, grad_w)
 
             if i > 0:
-                W_no_bias = self.weights[i][:, :-1]  # Exclude the bias term
+                W_no_bias = self.weights[i][:, :-1]  # exclude the bias term
+
+                # calculate delta again and repeat the process
                 error = W_no_bias.T @ error
                 if self.activation_function:
-                    error *= self.activation_function.derivative(self.pre_activations[i - 1])  # Use pre-activation
+                    error *= self.activation_function.derivative(self.pre_activations[i - 1])
 
+        # discards the "computation graph" from the forward prop
         self.outputs = []
         self.pre_activations = []
+
         return gradients
 
     def update_weights(self, gradients, learning_rate):
@@ -105,50 +132,6 @@ class NeuralNetwork:
         for i in range(len(self.weights)):
             self.weights[i] -= learning_rate * gradients[i]
 
-    def gradient_check(self, x, y, epsilon=1e-7):
-        # Store original weights
-        original_weights = [w.copy() for w in self.weights]
-
-        # Compute analytical gradients
-        self.forward(x)
-        analytical_grads = self.backward(x, y)
-
-        # Initialize numerical gradients
-        numerical_grads = []
-        for i, W in enumerate(self.weights):
-            num_grad = np.zeros_like(W)
-            for idx in np.ndindex(W.shape):
-                original_value = W[idx]
-
-                # Compute f(W + epsilon)
-                W[idx] = original_value + epsilon
-                plus_loss = 0.5 * np.mean((self.forward(x) - y) ** 2)
-
-                # Compute f(W - epsilon)
-                W[idx] = original_value - epsilon
-                minus_loss = 0.5 * np.mean((self.forward(x) - y) ** 2)
-
-                # Restore original value
-                W[idx] = original_value
-
-                # Compute numerical gradient
-                num_grad[idx] = (plus_loss - minus_loss) / (2 * epsilon)
-
-            numerical_grads.append(num_grad)
-
-        # Restore original weights
-        self.weights = original_weights
-
-        # Recompute analytical gradients with restored weights
-        self.forward(x)
-        analytical_grads = self.backward(x, y)
-
-        # Compare gradients
-        for idx, (a_grad, n_grad) in enumerate(zip(analytical_grads, numerical_grads)):
-            numerator = np.linalg.norm(a_grad - n_grad)
-            denominator = np.linalg.norm(a_grad) + np.linalg.norm(n_grad) + 1e-8
-            diff = numerator / denominator
-            print(f"Layer {idx + 1} relative difference: {diff}")
 
 
 if __name__ == "__main__":
