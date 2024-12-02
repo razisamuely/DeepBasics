@@ -26,27 +26,37 @@ class SGD:
         y_batch = y[start:end]
         return X_batch, y_batch
 
-    def run(self, X, y, w):
+    def run(self, X, y, w, metrics = None, X_val = None, y_val = None):
         n_samples = X.shape[0]
         n_features = X.shape[1]
         n_batches = n_samples // self.batch_size
         losses = []
+        metrics_tracker = []
+        val_metrics_tracker = []
         for i in tqdm(range(self.number_of_iteration)):
             for j in range(n_batches):
                 X_batch, y_batch = self.get_batche(X, y, j)
                 gradient = self.model.gradients(X_batch, y_batch, w)
                 w = self.step(w, gradient)
-                loss = self.model.mean_squared_error(self.model.forward(X, w), y)
+                loss = self.model.loss(self.model.forward(X, w), y)
                 losses.append(loss)
-
+                if metrics:
+                    metrics_tracker.append(metrics(self.model, X, y, w))
+                if X_val is not None:
+                    val_metrics_tracker.append(metrics(self.model, X_val, y_val, w))
             if i % 100 == 0:
                 print(f"Epoch {i} | Loss: {np.mean(losses[:-10])}")
             
 
-        return w
-
+        if metrics:
+            return w, losses, metrics_tracker, val_metrics_tracker
+        
+        else:
+            return w, losses
     
-
+    def calculate_accuracy(model, X, y, w):
+        y_pred = np.argmax(model.forward(X, w), axis = 1)
+        return np.mean(y_pred == y)
         
 
 class SGDMomentum(SGD):

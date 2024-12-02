@@ -3,7 +3,7 @@ from neural_net_from_scratch.src.utils.utils import augment_features
 from neural_net_from_scratch.src.utils.utils import one_hot
 
 class LeastSquaresLoss:
-    def mean_squared_error(self, y_pred: np.ndarray, y_true: np.ndarray) -> float:
+    def loss(self, y_pred: np.ndarray, y_true: np.ndarray) -> float:
         return np.mean((y_pred - y_true) ** 2)
 
     def mse_gradient(self, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     y_pred = model.forward(X, w_init)
 
     # Test mean squared error
-    loss = model.mean_squared_error(y_pred, y)  
+    loss = model.loss(y_pred, y)  
     print("\nTest mean squared error ", loss)
 
     # Test mse gradient
