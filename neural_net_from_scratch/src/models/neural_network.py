@@ -2,7 +2,7 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self, layer_sizes, activation_function=None, last_activation_function=None):
+    def __init__(self, layer_sizes, activation_function=None, last_activation_function=None, loss=None):
         """
         Initialize a neural network with augmented input for bias.
 
@@ -18,6 +18,7 @@ class NeuralNetwork:
         self.outputs = []  # To store intermediate outputs during forward pass
         self._initialize_parameters()
         self.grad = True
+        self.loss = loss
 
     def _initialize_parameters(self):
         """Initialize weights for all layers."""
@@ -87,12 +88,15 @@ class NeuralNetwork:
         assert self.grad and len(self.outputs) != 0 and len(self.pre_activations) != 0,\
             "Need to define grad=True and run forward prop before performing backprop"
 
+        assert self.loss is not None, "Need to define loss function in order to perform backprop"
+
 
         gradients = []
         final_output = self.outputs[-1]
 
         # first calculate the error between prediction and label
-        error = final_output - y
+        # error = final_output - y
+        error = np.array(self.loss.loss_gradient(final_output, y))
 
         # calculate the derivative of the last activation function and multiply it by the error (first delta term)
         if self.last_activation_function:
@@ -130,6 +134,7 @@ class NeuralNetwork:
             learning_rate (float): Learning rate for gradient descent.
         """
         for i in range(len(self.weights)):
+            # print(learning_rate * gradients[i])
             self.weights[i] -= learning_rate * gradients[i]
 
 
@@ -144,53 +149,82 @@ if __name__ == "__main__":
     activations_path = os.path.abspath(os.path.join(current_dir, '../activations'))
     sys.path.append(activations_path)
 
+    losses_path = os.path.abspath(os.path.join(current_dir, '../losses'))
+    sys.path.append(losses_path)
+
     from activations_class import *
     from relu import *
     from tanh import *
 
-    # Input and output
-    N = 30
+
+    class LeastSquaresLoss:
+        def loss(self, y_pred: np.ndarray, y_true: np.ndarray) -> float:
+            return np.mean((y_pred - y_true) ** 2)
+
+        def loss_gradient(self, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
+            return (y_pred - y_true) / y_pred.shape[0]
+
+
+    N_SAMPLES = 200
     n_features = 2
     out_dim = 1
-    epochs = 1000
-    X = np.random.randn(n_features, N)
-    X.sort()
-    y = (2 * (np.arange(N) + np.random.randn(N) * 0.001) / N) - 1
-    relu_activation = ActivationFunction(activation=tanh, derivative=tanh_derivative)
+    epochs = 50_000
+
+    def generate_linear_regression_data():
+        np.random.seed(42)
+        y = np.array([np.array([i + np.random.normal(loc=0, scale=3)]) for i in range(0, N_SAMPLES)]).squeeze()
+        X = np.array(np.array([(1, i + np.random.normal(loc=0, scale=3)) for i in range(0, N_SAMPLES)]))
+
+        return X, y
 
 
+    X, y = generate_linear_regression_data()
+
+    print(X.shape, y.shape)
+
+    relu_activation = ActivationFunction(activation=relu, derivative=relu_derivative)
+
+    loss = LeastSquaresLoss()
 
     # Define the network
     nn = NeuralNetwork(
-        layer_sizes=[n_features, 5, 10, out_dim],
+        layer_sizes=[n_features, 4, out_dim],
         activation_function=relu_activation,
-        last_activation_function=None
+        last_activation_function=None,
+        loss=loss
     )
 
 
+
+    loss_list = []
     for i in range(epochs):
 
 
         # Forward pass
-        output = nn.forward(X)
+        output = nn.forward(X.T)
+
+        loss_list.append(loss.loss(output, y))
+
         # Backward pass
-        gradients = nn.backward(X, y)
+        gradients = nn.backward(X.T, y)
         # Update weights
-        nn.update_weights(gradients, learning_rate=0.01)
+        nn.update_weights(gradients, learning_rate=1e-5)
 
 
     for i, t in enumerate(gradients):
         print(f'layer {i + 1} gradients.shape = {t.shape}')
 
-    nn.gradient_check(X, y)
+    # nn.gradient_check(X, y)
 
-    predicted = nn.forward(X)
+    predicted = nn.forward(X.T)
     plt.scatter(y, predicted.flatten(), label="Predicted vs Actual", c='r')
     plt.plot(y, y, label="Ideal", linestyle='--')
     plt.xlabel("Actual Values")
     plt.ylabel("Predicted Values")
     plt.title("Predicted vs Actual")
     plt.legend()
+
+    # plt.plot(loss_list)
 
     plt.tight_layout()
     plt.show()

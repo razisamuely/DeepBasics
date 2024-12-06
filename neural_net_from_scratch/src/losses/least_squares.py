@@ -6,7 +6,7 @@ class LeastSquaresLoss:
     def loss(self, y_pred: np.ndarray, y_true: np.ndarray) -> float:
         return np.mean((y_pred - y_true) ** 2)
 
-    def mse_gradient(self, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
+    def loss_gradient(self, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
         return (y_pred - y_true) / y_pred.shape[0]
 
     def w_gradient(self, X: np.ndarray, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:

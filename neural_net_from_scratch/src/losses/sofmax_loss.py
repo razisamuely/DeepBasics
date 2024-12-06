@@ -14,7 +14,7 @@ class SoftmaxLoss:
         loss = -np.sum(reshaped_labels * np.log(pred_prob + smoothing)) / len(pred_prob)
         return loss
 
-    def softmax_gradient(self, y_pred:np.ndarray, labels:np.ndarray) -> np.ndarray:
+    def loss_gradient(self, y_pred:np.ndarray, labels:np.ndarray) -> np.ndarray:
         return (y_pred - labels) / y_pred.shape[0]
 
     def w_gradient(self, X:np.ndarray, y_pred:np.ndarray, labels:np.ndarray) -> np.ndarray:
