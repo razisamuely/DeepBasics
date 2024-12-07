@@ -15,7 +15,7 @@ PLOT_FILE_PATH = 'neural_net_from_scratch/artifacts/gradient_test.png'
 def compute_gradient_errors(sfml, X, W, y, d, epsilon):
     y_one_hot = one_hot(y, N_CLASSES)
     net_output = sfml.forward(X, W)
-    loss_0 = sfml.cross_entropy_loss(net_output, y_one_hot)
+    loss_0 = sfml.loss(net_output, y_one_hot)
     
     zero_order = np.zeros(N_TESTS)
     first_order = np.zeros(N_TESTS)
@@ -29,7 +29,7 @@ def compute_gradient_errors(sfml, X, W, y, d, epsilon):
         
         W_perturbed = W + eps_k * d
         net_output_perturbed = sfml.forward(X, W_perturbed)
-        loss_k = sfml.cross_entropy_loss(net_output_perturbed, y_one_hot)
+        loss_k = sfml.loss(net_output_perturbed, y_one_hot)
 
         zero_order[k] = abs(loss_k - loss_0)
         first_order[k] = abs(loss_k - (loss_0 + eps_k * np.sum(sfml.gradients(X, y, W) * d)))

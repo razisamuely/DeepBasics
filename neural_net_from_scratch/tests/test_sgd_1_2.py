@@ -49,7 +49,7 @@ def test_sgd_optimization():
         number_of_iteration=N_ITERATIONS
     )
     
-    w_sgd = optimizer.run(X, y, w_init)
+    w_sgd, losses = optimizer.run(X, y, w_init)
 
     plot_analytical_solution_vs_sgd(X, y, w_sgd, w_analytical, w_analytical, w_sgd)
     

@@ -10,7 +10,11 @@ class SoftmaxLoss:
         return probs
     
     def loss(self, pred_prob:np.ndarray, labels:np.ndarray, smoothing:float=1e-15) -> float:
-        reshaped_labels = one_hot(labels, pred_prob.shape[1])
+        if len(labels.shape) > 1 :
+            reshaped_labels = labels
+        else:
+            reshaped_labels = one_hot(labels, pred_prob.shape[1])
+
         loss = -np.sum(reshaped_labels * np.log(pred_prob + smoothing)) / len(pred_prob)
         return loss
 
@@ -30,7 +34,7 @@ class SoftmaxLoss:
         X_aug = augment_features(X)
         predicted_prob = self.forward(X, W)
         y_one_hot = one_hot(y, W.shape[1])
-        dscores = self.softmax_gradient(predicted_prob, y_one_hot)
+        dscores = self.loss_gradient(predicted_prob, y_one_hot)
         dW = np.dot(X_aug.T, dscores)
         return dW
     
@@ -51,7 +55,7 @@ if __name__ == "__main__":
     print("\nTest cross entropy loss ", loss)
 
     # Test softmax gradient
-    y_pred = sfml.softmax_gradient(pred_prob, labels)
+    y_pred = sfml.loss_gradient(pred_prob, labels)
     print("\nTest softmax gradient ", y_pred)
 
     # Test w gradient

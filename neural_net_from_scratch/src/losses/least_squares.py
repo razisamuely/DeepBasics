@@ -10,8 +10,8 @@ class LeastSquaresLoss:
         return (y_pred - y_true) / y_pred.shape[0]
 
     def w_gradient(self, X: np.ndarray, y_pred: np.ndarray, y_true: np.ndarray) -> np.ndarray:
-        return  X.T @ self.mse_gradient(y_pred, y_true)
-
+        return X.T @ self.loss_gradient(y_pred, y_true)
+    
     def forward(self, X: np.ndarray, W: np.ndarray) -> np.ndarray:
         return X @ W
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print("\nTest mean squared error ", loss)
 
     # Test mse gradient
-    gradient = model.mse_gradient(y_pred, y)
+    gradient = model.loss_gradient(y_pred, y)
     print("\nTest mse gradient ", gradient)
 
     # Test w gradient
