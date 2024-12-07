@@ -25,7 +25,7 @@ class NeuralNetwork:
         for i in range(len(self.layer_sizes) - 1):
             # +1 for augmented bias input in the current layer
             self.weights.append(
-                np.random.randn(self.layer_sizes[i + 1], self.layer_sizes[i] + 1) * np.sqrt(2 / (self.layer_sizes[i]))
+                (np.random.randn(self.layer_sizes[i + 1], self.layer_sizes[i] + 1) * np.sqrt(2 / (self.layer_sizes[i])))
             )
 
     def no_grad(self, bool):
@@ -96,7 +96,7 @@ class NeuralNetwork:
 
         # first calculate the error between prediction and label
         # error = final_output - y
-        error = np.array(self.loss.loss_gradient(final_output, y))
+        error = self.loss.loss_gradient(final_output, y)
 
         # calculate the derivative of the last activation function and multiply it by the error (first delta term)
         if self.last_activation_function:
@@ -135,7 +135,7 @@ class NeuralNetwork:
         """
         for i in range(len(self.weights)):
             # print(learning_rate * gradients[i])
-            self.weights[i] -= learning_rate * gradients[i]
+            self.weights[i] = self.weights[i] - learning_rate * gradients[i]
 
 
 
@@ -165,15 +165,15 @@ if __name__ == "__main__":
             return (y_pred - y_true) / y_pred.shape[0]
 
 
-    N_SAMPLES = 200
+    N_SAMPLES = 32
     n_features = 2
     out_dim = 1
-    epochs = 50_000
+    epochs = 100_000
 
-    def generate_linear_regression_data():
+    def generate_linear_regression_data(bias=3000):
         np.random.seed(42)
-        y = np.array([np.array([i + np.random.normal(loc=0, scale=3)]) for i in range(0, N_SAMPLES)]).squeeze()
-        X = np.array(np.array([(1, i + np.random.normal(loc=0, scale=3)) for i in range(0, N_SAMPLES)]))
+        y = np.array([np.array([i + np.random.normal(loc=0, scale=3)]) for i in range(0, N_SAMPLES)]).squeeze() + bias
+        X = np.array(np.array([(1, i + np.random.normal(loc=0, scale=3)) for i in range(0, N_SAMPLES)])) / N_SAMPLES
 
         return X, y
 
@@ -188,12 +188,11 @@ if __name__ == "__main__":
 
     # Define the network
     nn = NeuralNetwork(
-        layer_sizes=[n_features, 4, out_dim],
+        layer_sizes=[n_features, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, out_dim],
         activation_function=relu_activation,
         last_activation_function=None,
         loss=loss
     )
-
 
 
     loss_list = []
@@ -208,13 +207,8 @@ if __name__ == "__main__":
         # Backward pass
         gradients = nn.backward(X.T, y)
         # Update weights
-        nn.update_weights(gradients, learning_rate=1e-5)
+        nn.update_weights(gradients, learning_rate=1e-8)
 
-
-    for i, t in enumerate(gradients):
-        print(f'layer {i + 1} gradients.shape = {t.shape}')
-
-    # nn.gradient_check(X, y)
 
     predicted = nn.forward(X.T)
     plt.scatter(y, predicted.flatten(), label="Predicted vs Actual", c='r')
