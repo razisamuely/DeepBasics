@@ -2,7 +2,7 @@ import numpy as np
 from neural_net_from_scratch.src.optimizers.SGD import SGD
 from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
 import matplotlib.pyplot as plt
-from utils import (plot_softmax_decision_boundary, 
+from neural_net_from_scratch.tests.utils import (plot_softmax_decision_boundary, 
                    generate_artificial_classification_data_for_softmax_minimazation, 
                    calculate_accuracy,
                    plot_loss_vs_accuracy_train_vs_test)
