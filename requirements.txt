@@ -8,4 +8,4 @@ pathlib
 scipy
 pytest
 gdown
-
+seaborn

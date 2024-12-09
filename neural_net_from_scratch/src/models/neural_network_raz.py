@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List, Tuple, Callable, Union
-
+import matplotlib.pyplot as plt
 class Activation:
     @staticmethod
     def relu(x: np.ndarray) -> np.ndarray:
@@ -32,8 +32,11 @@ class Layer:
                  input_dim: int, 
                  output_dim: int,
                  activation: str = 'relu' ):
-        self.W = np.random.randn(output_dim, input_dim) * np.sqrt(2.0/input_dim)  # He initialization
-        self.b = np.zeros((output_dim, 1))
+        
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.init_weights(input_dim, output_dim)
+        self.init_gradients()
         
         if activation == 'relu':
             self.activation = Activation.relu
@@ -47,14 +50,18 @@ class Layer:
         else:
             raise ValueError(f"Unsupported activation function: {activation}")
         
-        # Initialize gradients
-        self.dW = np.zeros_like(self.W)
-        self.db = np.zeros_like(self.b)
-        
-        # Cache for backward pass
+
         self.x = None
         self.z = None
         self.a = None
+
+    def init_weights(self, input_dim: int, output_dim: int) -> None:
+        self.W = np.random.randn(output_dim, input_dim) * np.sqrt(2.0/input_dim)
+        self.b = np.zeros((output_dim, 1))
+    
+    def init_gradients(self) -> None:
+        self.dW = np.zeros_like(self.W)
+        self.db = np.zeros_like(self.b)
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         self.x = x
@@ -82,13 +89,6 @@ class Layer:
 
 class DynamicNeuralNetwork:
     def __init__(self, layer_dims: List[int], activations: List[str]):
-        """
-        Initialize a dynamic neural network
-        
-        Args:
-            layer_dims: List of layer dimensions [input_dim, hidden1, hidden2, ..., output_dim]
-            activations: List of activation functions for each layer
-        """
         self.layers = []
         for i in range(len(layer_dims) - 1):
             layer = Layer(
@@ -114,33 +114,3 @@ class DynamicNeuralNetwork:
             layer.W -= learning_rate * layer.dW
             layer.b -= learning_rate * layer.db
 
-# Example usage
-def test_dynamic_network():
-    # Define network architecture
-    layer_dims = [784, 256, 128, 64, 10]  # Example for MNIST
-    activations = ['relu', 'relu', 'relu', 'sigmoid']
-    residual_connections = [False, False, False, False]  # Example with one residual connection
-    
-    # Create network
-    network = DynamicNeuralNetwork(
-        layer_dims=layer_dims,
-        activations=activations,
-        residual_connections=residual_connections
-    )
-    
-    # Test forward pass
-    x = np.random.randn(784, 32)  # 32 samples
-    output = network.forward(x)
-    
-    # Test backward pass
-    dL_dy = np.random.randn(*output.shape)
-    network.backward(dL_dy)
-    
-    # Update parameters
-    network.update_parameters(learning_rate=0.01)
-    
-    return output
-
-if __name__ == "__main__":
-    output = test_dynamic_network()
-    print(f"Output shape: {output.shape}")
