@@ -33,7 +33,7 @@ class Layer:
     def __init__(self, 
                  input_dim: int, 
                  output_dim: int,
-                 activation: str = 'relu' ):
+                 activation: str = 'relu'):
         
         self.input_dim = input_dim
         self.output_dim = output_dim

@@ -2,43 +2,49 @@ import numpy as np
 from neural_net_from_scratch.src.utils.utils import augment_features    
 from neural_net_from_scratch.src.utils.utils import one_hot
 
+import numpy as np
+
 
 class SoftmaxLoss:
-    def sofotmax(self,x:np.ndarray) -> np.ndarray:
-        exponent_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+    def sofotmax(self, x: np.ndarray) -> np.ndarray:
+        # Numerical stability: Subtract max value row-wise
+        x_stable = x - np.max(x, axis=1, keepdims=True)
+        exponent_x = np.exp(x_stable)
         probs = exponent_x / np.sum(exponent_x, axis=1, keepdims=True)
         return probs
-    
-    def loss(self, pred_prob:np.ndarray, labels:np.ndarray, smoothing:float=1e-15) -> float:
-        if len(labels.shape) > 1 :
+
+    def loss(self, pred_prob: np.ndarray, labels: np.ndarray, smoothing: float = 1e-15) -> float:
+        if len(labels.shape) > 1:
             reshaped_labels = labels
         else:
             reshaped_labels = one_hot(labels, pred_prob.shape[1])
 
-        loss = -np.sum(reshaped_labels * np.log(pred_prob + smoothing)) / len(pred_prob)
+        # Clip probabilities for numerical stability
+        pred_prob = np.clip(pred_prob, smoothing, 1 - smoothing)
+        loss = -np.sum(reshaped_labels * np.log(pred_prob)) / len(pred_prob)
         return loss
 
-    def loss_gradient(self, y_pred:np.ndarray, labels:np.ndarray) -> np.ndarray:
+    def loss_gradient(self, y_pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
         return (y_pred - labels) / y_pred.shape[0]
 
-    def w_gradient(self, X:np.ndarray, y_pred:np.ndarray, labels:np.ndarray) -> np.ndarray:
+    def w_gradient(self, X: np.ndarray, y_pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
         return np.dot(X.T, y_pred - labels)
-    
-    def forward(self, X:np.ndarray, W:np.ndarray) -> np.ndarray:
+
+    def forward(self, X: np.ndarray, W: np.ndarray) -> np.ndarray:
         X_aug = augment_features(X)
         scores = np.dot(X_aug, W)
         probs = self.sofotmax(scores)
         return probs
-    
-    def gradients(self, X:np.ndarray, y:np.ndarray , W:np.ndarray) -> np.ndarray:
+
+    def gradients(self, X: np.ndarray, y: np.ndarray, W: np.ndarray) -> np.ndarray:
         X_aug = augment_features(X)
         predicted_prob = self.forward(X, W)
         y_one_hot = one_hot(y, W.shape[1])
         dscores = self.loss_gradient(predicted_prob, y_one_hot)
         dW = np.dot(X_aug.T, dscores)
         return dW
-    
-    
+
+
 if __name__ == "__main__":
     
     logits = np.array([[1, 2, 3, 2,]]) * 0
