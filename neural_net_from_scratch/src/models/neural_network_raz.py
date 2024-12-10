@@ -1,6 +1,8 @@
 import numpy as np
-from typing import List, Tuple, Callable, Union
+from typing import List, Tuple, Callable, Union, Dict
 import matplotlib.pyplot as plt
+
+
 class Activation:
     @staticmethod
     def relu(x: np.ndarray) -> np.ndarray:
@@ -86,18 +88,54 @@ class Layer:
         dL_dx = np.dot(self.W.T, dL_dz)
         
         return dL_dx
+    
+    def update_parameters(self, learning_rate: float) -> None:
+        self.W -= learning_rate * self.dW
+        self.b -= learning_rate * self.db
+
+
+class ResidualBlock:
+    def __init__(self, input_dim: int, output_dim: int, activation: str):
+        self.layers = [
+            Layer(input_dim, output_dim, activation),
+            Layer(output_dim, output_dim, activation)
+        ]
+    
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        a = self.layers[0].forward(x)
+        a = self.layers[1].forward(a)
+        return a + x
+    
+    def backward(self, dL_da: np.ndarray) -> np.ndarray:
+        dL_dx_second = self.layers[1].backward(dL_da)
+        dL_dx_first = self.layers[0].backward(dL_dx_second)
+        dL_dx =  dL_da + dL_dx_first
+        return dL_dx
+
+    def update_parameters(self, learning_rate: float) -> None:
+        for layer in self.layers:
+            layer.update_parameters(learning_rate)
+
 
 class DynamicNeuralNetwork:
-    def __init__(self, layer_dims: List[int], activations: List[str]):
+    def __init__(self, layer_configs: List[Dict]):
         self.layers = []
-        for i in range(len(layer_dims) - 1):
-            layer = Layer(
-                input_dim=layer_dims[i],
-                output_dim=layer_dims[i + 1],
-                activation=activations[i]
-            )
-            self.layers.append(layer)
-
+        for config in layer_configs:
+            if config["type"] == "layer":
+                layer = Layer(
+                    input_dim=config["input_dim"],
+                    output_dim=config["output_dim"],
+                    activation=config["activation"]
+                )
+                self.layers.append(layer)
+            elif config["type"] == "residual":
+                residual_block = ResidualBlock(
+                    input_dim=config["input_dim"],
+                    output_dim=config["output_dim"],
+                    activation=config["activation"]
+                )
+                self.layers.append(residual_block)
+                
     def forward(self, x: np.ndarray) -> np.ndarray:
         current_activation = x
         for layer in self.layers:
@@ -111,6 +149,34 @@ class DynamicNeuralNetwork:
 
     def update_parameters(self, learning_rate: float) -> None:
         for layer in self.layers:
-            layer.W -= learning_rate * layer.dW
-            layer.b -= learning_rate * layer.db
+            layer.update_parameters(learning_rate)
 
+
+
+if __name__ == "__main__":
+    final_output_dim = 8
+    layer_configs = [
+        {"type": "layer", "input_dim": 4, "output_dim": 8, "activation": "relu"},
+        {"type": "residual", "input_dim": 8, "output_dim": final_output_dim, "activation": "relu"},
+    ]
+    
+    # Create the network
+    network = DynamicNeuralNetwork(layer_configs)
+
+    # Input data
+    x = np.random.randn(4, 10)  # 4 features, 10 samples
+
+    # Forward pass
+    output = network.forward(x)
+
+    # Compute gradient with matching dimensions
+    dL_dy = np.random.randn(final_output_dim, 10)  # Changed from (2,10) to (8,10) to match output
+
+    # Backward pass
+    network.backward(dL_dy)
+
+    # Update parameters
+    network.update_parameters(learning_rate=0.01)
+
+    # print forward pass output
+    print(output)

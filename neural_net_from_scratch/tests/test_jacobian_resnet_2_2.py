@@ -2,14 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from neural_net_from_scratch.src.models.neural_network_raz import DynamicNeuralNetwork
 
+DIM = 10
 def test_jacobian():
     layer_configs = [
-        {"type": "layer", "input_dim": 784, "output_dim": 10, "activation": "tanh"}
+        {"type": "residual", "input_dim": DIM, "output_dim": DIM, "activation": "tanh"}
     ]
     network = DynamicNeuralNetwork(layer_configs)
+    residual_block = network.layers[0]
 
-    x = np.random.randn(784, 1) 
-    d = np.random.randn(784, 1)
+    x = np.random.randn(DIM, 1) 
+    d = np.random.randn(DIM, 1)
     epsilon = 0.2
 
     linear_errors = []
@@ -24,8 +26,18 @@ def test_jacobian():
         x_plus_eps_d = x + eps * d
         f_x_plus_eps_d = network.forward(x_plus_eps_d)
         
-        activation_deriv = network.layers[0].activation_derivative(network.layers[0].z)
-        JacMV = activation_deriv * (network.layers[0].W @ (eps * d))
+        layer1, layer2 = residual_block.layers
+        
+        z1 = layer1.z
+        a1 = layer1.a
+        da1_dz1 = layer1.activation_derivative(z1)
+        JacMV1 = da1_dz1 * (layer1.W @ (eps * d))
+        
+        z2 = layer2.z
+        da2_dz2 = layer2.activation_derivative(z2)
+        JacMV2 = da2_dz2 * (layer2.W @ JacMV1)
+        
+        JacMV = JacMV2 + eps * d 
 
         val_linear = np.linalg.norm(f_x_plus_eps_d - f_x)
         val_quad = np.linalg.norm(f_x_plus_eps_d - f_x - JacMV)
@@ -46,10 +58,10 @@ def test_jacobian():
     plt.grid(True)
     plt.xlabel('ε')
     plt.ylabel('Error')
-    plt.title('Jacobian Test Convergence')
+    plt.title('Residual Block Jacobian Tes')
     plt.legend()
     
-    plt.savefig('neural_net_from_scratch/artifacts/jacobian_test.png')
+    plt.savefig('neural_net_from_scratch/artifacts/jacobian_test_residual_block.png')
     plt.close()
 
     return linear_errors, quadratic_errors
@@ -60,5 +72,11 @@ def test_convergence():
     linear_ratios = np.array(linear_errors[:-1]) / np.array(linear_errors[1:])
     quad_ratios = np.array(quadratic_errors[:-1]) / np.array(quadratic_errors[1:])
     
-    assert np.allclose(linear_ratios, 2, rtol=0.5), "Linear is not decrease by factor of 2"
-    assert np.allclose(quad_ratios, 4, rtol=0.5), "Quadratic is not decrease by factor of 4"
+    assert np.allclose(linear_ratios, 2, rtol=0.5)
+    assert np.allclose(quad_ratios, 4, rtol=0.5)
+
+
+if __name__ == "__main__":
+    # run the test
+
+    test_convergence()
