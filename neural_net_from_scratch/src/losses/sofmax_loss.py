@@ -8,9 +8,9 @@ import numpy as np
 class SoftmaxLoss:
     def sofotmax(self, x: np.ndarray) -> np.ndarray:
         # Numerical stability: Subtract max value row-wise
-        x_stable = x - np.max(x, axis=1, keepdims=True)
+        x_stable = x - np.max(x, axis=0, keepdims=True)
         exponent_x = np.exp(x_stable)
-        probs = exponent_x / np.sum(exponent_x, axis=1, keepdims=True)
+        probs = exponent_x / np.sum(exponent_x, axis=0, keepdims=True)
         return probs
 
     def loss(self, pred_prob: np.ndarray, labels: np.ndarray, smoothing: float = 1e-15) -> float:
@@ -21,11 +21,12 @@ class SoftmaxLoss:
 
         # Clip probabilities for numerical stability
         pred_prob = np.clip(pred_prob, smoothing, 1 - smoothing)
-        loss = -np.sum(reshaped_labels * np.log(pred_prob)) / len(pred_prob)
+
+        loss = -np.sum(reshaped_labels * np.log(pred_prob)) / pred_prob.shape[-1]
         return loss
 
     def loss_gradient(self, y_pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
-        return (y_pred - labels) / y_pred.shape[0]
+        return (y_pred - labels) / y_pred.shape[-1]
 
     def w_gradient(self, X: np.ndarray, y_pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
         return np.dot(X.T, y_pred - labels)

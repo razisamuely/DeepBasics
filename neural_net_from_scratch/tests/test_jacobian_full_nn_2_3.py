@@ -22,16 +22,14 @@ def build_full_network(L, input_dim, output_dim, hidden_dim, activation="tanh"):
 
 
 def gradient_test_full_network(L=3, input_dim=10, hidden_dim=20, output_dim=5, epsilon=0.2):
-    DIM = 10
-
     # Generate some random data and labels
-    X = np.random.randn(DIM, 1)
+    X = np.random.randn(input_dim, 1)
     y = np.random.randn(output_dim, 1)
 
     # creating random one hot vector
     y[y == y.max()], y[~(y == y.max())] = 1, 0
 
-    d = np.random.randn(DIM, 1)
+    d = np.random.randn(input_dim, 1)
 
     # Build the network
     network = build_full_network(L, input_dim, output_dim, hidden_dim, activation="tanh")
@@ -49,37 +47,35 @@ def gradient_test_full_network(L=3, input_dim=10, hidden_dim=20, output_dim=5, e
         eps = epsilon * (0.5 ** i)
         eps_values.append(eps)
 
-        x_forward = network.forward(X)
+        x_forward, x_eps_forward = network.forward(X), network.forward(X + eps * d)
 
-        x_eps_forward = network.forward(X + eps * d)
+        x_forward, x_eps_forward = sfml.sofotmax(x_forward), sfml.sofotmax(x_eps_forward)
 
         forward_loss, eps_forward_loss = sfml.loss(x_forward, y), sfml.loss(x_eps_forward, y)
 
-        linear_error = np.linalg.norm(forward_loss - eps_forward_loss)
+        linear_error = abs(forward_loss - eps_forward_loss)
 
-        current_gradient = forward_loss
+        current_gradient = sfml.loss_gradient(x_forward, y)
         for layer in reversed(network.layers):
             current_gradient = layer.backward(current_gradient)
 
-        quadratic_error = np.linalg.norm(forward_loss - eps_forward_loss - eps * (d.T @ current_gradient))
+        quadratic_error = abs(forward_loss - eps_forward_loss + eps * (d.T @ current_gradient)[0][0])
+
 
         linear_errors.append(linear_error)
         quadratic_errors.append(quadratic_error)
 
 
-    print(linear_errors)
-
     # Plot the results
     plt.figure(figsize=(10, 6))
-    plt.loglog(eps_values, linear_errors, 'b.-', label='|f(w+eps*d) - f(w)| ~ O(eps)')
-    plt.loglog(eps_values, quadratic_errors, 'r.-', label='|f(w+eps*d) - f(w) - eps*dT grad| ~ O(eps^2)')
+    plt.loglog(eps_values, linear_errors, 'b.-', label='Linear Error')
+    plt.loglog(eps_values, quadratic_errors, 'r.-', label='Quadratic Error')
 
-    # Reference lines for O(eps) and O(eps^2)
     ref_eps = np.array([eps_values[0], eps_values[-1]])
     ref_linear = ref_eps * linear_errors[0] / eps_values[0]
-    ref_quad = (ref_eps ** 2) * (quadratic_errors[0] / (eps_values[0] ** 2))
-    plt.loglog(ref_eps, ref_linear, 'b--', alpha=0.5, label='O(eps) reference')
-    plt.loglog(ref_eps, ref_quad, 'r--', alpha=0.5, label='O(eps^2) reference')
+    ref_quad = ref_eps ** 2 * quadratic_errors[0] / eps_values[0] ** 2
+    plt.loglog(ref_eps, ref_linear, 'b--', alpha=0.5, label='O(ε)')
+    plt.loglog(ref_eps, ref_quad, 'r--', alpha=0.5, label='O(ε²)')
 
     plt.grid(True)
     plt.xlabel('epsilon')
