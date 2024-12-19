@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 N_SAMPLES = 100
 N_FEATURES = 2
-N_ITERATIONS = 30_000
-LEARNING_RATE = 1e-2
-HIDDEN_DIM = N_FEATURES * 10
+N_ITERATIONS = 500
+# LEARNING_RATE = 1e-2
+# HIDDEN_DIM = 20
 
 
 
@@ -25,22 +25,24 @@ def plot_analytical_solution_vs_sgd(X, y, w_sgd, w_analytical, analytical_weight
 
 
 def train_network(network,
-                  X, y,
+                  X_train, y_train,
+                  X_test, y_test,
                   learning_rate=1e-3,
                   n_epochs=20000):
     losses = []
-    accuracies = []
+    train_accuracies = []
+    test_accuracies = []
     optimizer = SGD(model=network,
                     learning_rate=learning_rate,
                     )
 
     softmax = SoftmaxLoss()
     for epoch in range(n_epochs):
-        out = network.forward(X)
+        train_out = network.forward(X_train)
 
-        loss = softmax.loss(out, y)
+        loss = softmax.loss(train_out, y_train)
 
-        grad = softmax.loss_gradient(out, y)
+        grad = softmax.loss_gradient(train_out, y_train)
 
         network.backward(grad)
 
@@ -48,13 +50,21 @@ def train_network(network,
 
         losses.append(loss)
 
-        predictions = np.argmax(out, axis=0)
-        y_classes = np.argmax(y, axis=0)
-        accuracy = (predictions == y_classes).sum()
+        # train metrics
+        train_predictions = np.argmax(train_out, axis=0)
+        y_classes = np.argmax(y_train, axis=0)
+        train_accuracy = (train_predictions == y_classes).sum() / len(train_predictions)
 
-        accuracies.append(accuracy)
+        # test metrics
+        test_out = network.forward(X_test)
+        test_predictions = np.argmax(test_out, axis=0)
+        y_classes = np.argmax(y_test, axis=0)
+        test_accuracy = (test_predictions == y_classes).sum() / len(test_predictions)
 
-    return losses, accuracies
+        train_accuracies.append(train_accuracy)
+        test_accuracies.append(test_accuracy)
+
+    return losses, train_accuracies, test_accuracies
 
 
 def plot_softmax_decision_boundary(X, y, model, n_classes, title, N_SAMPLES):
@@ -81,12 +91,12 @@ def plot_softmax_decision_boundary(X, y, model, n_classes, title, N_SAMPLES):
     plt.title(title)
     plt.legend()
     plt.grid(True)
-    if N_SAMPLES == 200:
-        plt.savefig('../../neural_net_from_scratch/artifacts/full_network_decision_boundary_2_5.png')
-    else:
-        plt.savefig('../../neural_net_from_scratch/artifacts/full_network_decision_boundary_2_4.png')
-    plt.close()
-    # plt.show()
+    # if N_SAMPLES == 200:
+    #     plt.savefig('../../neural_net_from_scratch/artifacts/full_network_decision_boundary_2_5.png')
+    # else:
+    #     plt.savefig('../../neural_net_from_scratch/artifacts/full_network_decision_boundary_2_4.png')
+    # plt.close()
+    plt.show()
 
 
 def one_hot( y:np.ndarray, n_classes:int) -> np.ndarray:
@@ -95,16 +105,29 @@ def one_hot( y:np.ndarray, n_classes:int) -> np.ndarray:
     y_one_hot[np.arange(n_samples), y] = 1
     return y_one_hot
 
-def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES):
+def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=20, test_size=0.3):
     N_CLASSES = 3
     X, y, w_init = generate_artificial_classification_data_for_softmax_minimazation(N_SAMPLES, N_CLASSES, N_FEATURES)
 
-    X = (X - X.mean(axis=0)) / X.std(axis=0)
+    indices = np.arange(X.shape[0])
+    np.random.shuffle(indices)
+
+    train_indices = indices[:int(X.shape[0] * test_size)]
+    test_indices = indices[int(X.shape[0] * test_size):]
+    X_test, X_train = X[test_indices], X[train_indices]
+    y_test, y_train = y[test_indices], y[train_indices]
+
+    train_mean, train_std = X_train.mean(axis=0), X_train.std(axis=0)
+    X_train = (X_train - train_mean) / train_std
+
+    # use same mean and std for honest checking
+    X_test = (X_test - train_mean) / train_std
 
 
-
-    one_hot_y = one_hot(y, N_CLASSES)
-    print(f'x.shape = {X.shape}, y.shape = {y.shape}')
+    one_hot_y_train = one_hot(y_train, N_CLASSES)
+    one_hot_y_test = one_hot(y_test, N_CLASSES)
+    print(f'X_train.shape = {X_train.shape}, y_train.shape = {y_train.shape}')
+    print(f'X_test.shape = {X_test.shape}, y_test.shape = {y_test.shape}')
 
     print(f'running full network test with iterations = {N_ITERATIONS}, LR = {LEARNING_RATE}, examples = {N_SAMPLES}')
 
@@ -118,17 +141,31 @@ def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES):
     # Create the network
     network = DynamicNeuralNetwork(layer_configs)
 
-    losses, accuracies = train_network(
+    losses, train_accuracies, test_accuracies = train_network(
         network=network,
-        X=X.T,
-        y=one_hot_y.T,
+        X_train=X_train.T,
+        y_train=one_hot_y_train.T,
+        X_test=X_test.T,
+        y_test=one_hot_y_test.T,
         n_epochs=N_ITERATIONS,
         learning_rate=LEARNING_RATE
     )
 
-    title = f'Softmax Classification using a full neural network\nLearning Rate: {LEARNING_RATE}, Iterations: {N_ITERATIONS}, Num Examples: {N_SAMPLES}'
+    fig, ax = plt.subplots(nrows=2, ncols=1)
+    ax[0].plot(train_accuracies)
+    ax[0].plot(test_accuracies)
+    ax[0].legend(['Train', 'Test'])
+    ax[0].set_title(f'Learning rate={LEARNING_RATE}, Hidden Dim={HIDDEN_DIM}, N_SAMPLES={N_SAMPLES}\nAccuracies vs Epochs')
+    ax[1].plot(losses)
+    ax[1].set_title('Loss vs Epochs')
+    plt.tight_layout()
+    plt.show()
 
-    plot_softmax_decision_boundary(X, y.T, network, n_classes=N_CLASSES, title=title, N_SAMPLES=N_SAMPLES)
+    title = f'Softmax Classification using a full neural network on test data\nLearning Rate: {LEARNING_RATE}, Hidden Dim: {HIDDEN_DIM}, Num Examples: {N_SAMPLES}'
+
+    plot_softmax_decision_boundary(X_test, y_test.T, network, n_classes=N_CLASSES, title=title, N_SAMPLES=N_SAMPLES)
+
+    # plt.show()
 
 
 if __name__ == "__main__":
@@ -147,9 +184,18 @@ if __name__ == "__main__":
     from utils import generate_artificial_classification_data_for_softmax_minimazation
 
 
-    # test with 100 examples
-    N_SAMPLES = 100
-    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES)
+    # test with 1000 examples
+    N_SAMPLES = 1000
+
+    # too high learning rate
+    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-0, HIDDEN_DIM=20)
+
+    # low hidden dim
+    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=2)
+
+    # optimal params
+    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=20)
+
 
     # test with 200 examples
     N_SAMPLES = 200
