@@ -1,7 +1,5 @@
 import numpy as np
-from typing import List, Tuple, Callable, Union, Dict
-import matplotlib.pyplot as plt
-
+from typing import List, Dict
 
 class Activation:
     @staticmethod
