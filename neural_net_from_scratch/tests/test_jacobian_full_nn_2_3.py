@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     import numpy as np
     import matplotlib.pyplot as plt
-    from neural_net_from_scratch.src.models.neural_network_raz import DynamicNeuralNetwork
+    from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
     from neural_net_from_scratch.src.losses.sofmax_loss import *
 
     # Example usage: test a network with L=3 layers

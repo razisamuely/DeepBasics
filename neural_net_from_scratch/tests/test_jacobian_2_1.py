@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from neural_net_from_scratch.src.models.neural_network_raz import DynamicNeuralNetwork
+from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
 
 def test_jacobian():
     layer_configs = [

@@ -1,9 +1,9 @@
 import numpy as np
 from typing import List, Tuple
 import matplotlib.pyplot as plt
-from neural_net_from_scratch.src.models.neural_network_raz import DynamicNeuralNetwork
-from neural_net_from_scratch.src.models.neural_network_raz import ResidualBlock
-from neural_net_from_scratch.src.models.neural_network_raz import Layer
+from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
+from neural_net_from_scratch.src.models.neural_network import ResidualBlock
+from neural_net_from_scratch.src.models.neural_network import Layer
 from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
 
 def softmax(x: np.ndarray) -> np.ndarray:

@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
     from neural_net_from_scratch.src.optimizers.SGD import SGD
     from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
-    from neural_net_from_scratch.src.models.neural_network_raz import DynamicNeuralNetwork
+    from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
     from utils import generate_artificial_classification_data_for_softmax_minimazation
 
 
