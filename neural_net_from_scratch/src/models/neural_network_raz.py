@@ -146,6 +146,7 @@ class DynamicNeuralNetwork:
         current_gradient = dL_dy
         for layer in reversed(self.layers):
             current_gradient = layer.backward(current_gradient)
+        return current_gradient
 
     def update_parameters(self, learning_rate: float) -> None:
         for layer in self.layers:
