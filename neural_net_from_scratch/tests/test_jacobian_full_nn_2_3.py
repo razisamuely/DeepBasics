@@ -1,15 +1,8 @@
 
 
-def build_full_network(L, input_dim, output_dim, hidden_dim, activation="tanh"):
-    """
-    Build a full network with L layers.
-    For simplicity:
-    - First layer: input_dim -> hidden_dim
-    - (L-2) hidden layers: hidden_dim -> hidden_dim
-    - Last layer: hidden_dim -> output_dim
-    """
+def build_full_network(L, input_dim, output_dim, hidden_dim):
     layer_configs = []
-    # First layer
+
     layer_configs = [
         {"type": "layer", "input_dim": input_dim, "output_dim": hidden_dim, "activation": "tanh"},
         {"type": "layer", "input_dim": hidden_dim, "output_dim": hidden_dim, "activation": "tanh"},
@@ -22,19 +15,15 @@ def build_full_network(L, input_dim, output_dim, hidden_dim, activation="tanh"):
 
 
 def gradient_test_full_network(L=3, input_dim=10, hidden_dim=20, output_dim=5, epsilon=0.2):
-    # Generate some random data and labels
     X = np.random.randn(input_dim, 1)
     y = np.random.randn(output_dim, 1)
 
-    # creating random one hot vector
     y[y == y.max()], y[~(y == y.max())] = 1, 0
 
     d = np.random.randn(input_dim, 1)
 
-    # Build the network
     network = build_full_network(L, input_dim, output_dim, hidden_dim, activation="tanh")
 
-    # d = d / np.linalg.norm(d)  # Normalize direction
 
     linear_errors = []
     quadratic_errors = []
@@ -66,7 +55,6 @@ def gradient_test_full_network(L=3, input_dim=10, hidden_dim=20, output_dim=5, e
         quadratic_errors.append(quadratic_error)
 
 
-    # Plot the results
     plt.figure(figsize=(10, 6))
     plt.loglog(eps_values, linear_errors, 'b.-', label='Linear Error')
     plt.loglog(eps_values, quadratic_errors, 'r.-', label='Quadratic Error')
@@ -82,9 +70,8 @@ def gradient_test_full_network(L=3, input_dim=10, hidden_dim=20, output_dim=5, e
     plt.ylabel('Error')
     plt.title('Full Network Gradient Test (L = {})'.format(L))
     plt.legend()
-    # plt.savefig(f'full_network_gradient_test_L{L}.png')
-    # plt.close()
-    plt.show()
+    plt.savefig(f'full_network_gradient_test_L{L}.png')
+    plt.close()
 
     return linear_errors, quadratic_errors
 
