@@ -1,5 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+import os
+current_dir = os.path.dirname(__file__)
+activations_path = os.path.abspath(os.path.join(current_dir, '../../'))
+sys.path.append(activations_path)
+
+import pytest
+from neural_net_from_scratch.src.optimizers.SGD import SGD
+from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
+from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
 
 
 N_SAMPLES = 100
@@ -8,6 +18,33 @@ N_ITERATIONS = 500
 # LEARNING_RATE = 1e-2
 # HIDDEN_DIM = 20
 
+
+def generate_artificial_classification_data_for_softmax_minimazation(n_sampels, n_classes, n_features):
+    """Generate synthetic classification data with 3 classes"""
+    np.random.seed(42)
+
+    centers = [
+        (0, 0),
+        (5, 5),
+        (-5, 5)
+    ]
+
+    X = []
+    y = []
+    samples_per_class = n_sampels // n_classes
+
+    for class_idx, (cx, cy) in enumerate(centers):
+        x_samples = np.random.normal(cx, 1, samples_per_class)
+        y_samples = np.random.normal(cy, 1, samples_per_class)
+        X.extend([[x, y] for x, y in zip(x_samples, y_samples)])
+        y.extend([class_idx] * samples_per_class)
+
+    X = np.array(X)
+    y = np.array(y)
+
+    w_init = np.random.randn(n_features + 1, n_classes) * 0.01
+
+    return X, y, w_init
 
 
 def plot_analytical_solution_vs_sgd(X, y, w_sgd, w_analytical, analytical_weights, sgd_weights):
@@ -105,7 +142,14 @@ def one_hot( y:np.ndarray, n_classes:int) -> np.ndarray:
     y_one_hot[np.arange(n_samples), y] = 1
     return y_one_hot
 
-def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=20, test_size=0.3):
+
+@pytest.mark.parametrize("N_SAMPLES, LEARNING_RATE, HIDDEN_DIM", [
+    (1000, 1e-0, 20),   # Too high learning rate
+    (1000, 1e-2, 2),    # Low hidden dimension
+    (1000, 1e-2, 20),   # Optimal parameters
+    (200, 1e-2, 20),    # Test with 200 examples
+])
+def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE, HIDDEN_DIM, test_size=0.3):
     N_CLASSES = 3
     X, y, w_init = generate_artificial_classification_data_for_softmax_minimazation(N_SAMPLES, N_CLASSES, N_FEATURES)
 
@@ -169,34 +213,32 @@ def test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-
 
 
 if __name__ == "__main__":
-    print("Testing full network optimization...")
-    import sys
-    import os
 
-    # just for testing, import activation class and relu for activation function and run a test on synthetic data
-    current_dir = os.path.dirname(__file__)
-    activations_path = os.path.abspath(os.path.join(current_dir, '../../'))
-    sys.path.append(activations_path)
+    # # test with 1000 examples
+    # N_SAMPLES = 1000
+    #
+    # # too high learning rate
+    # test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-0, HIDDEN_DIM=20)
+    #
+    # # low hidden dim
+    # test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=2)
+    #
+    # # optimal params
+    # test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=20)
+    #
+    #
+    # # test with 200 examples
+    # N_SAMPLES = 200
+    # test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES)
 
-    from neural_net_from_scratch.src.optimizers.SGD import SGD
-    from neural_net_from_scratch.src.losses.sofmax_loss import SoftmaxLoss
-    from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwork
-    from utils import generate_artificial_classification_data_for_softmax_minimazation
+    test_cases = [
+        (1000, 1e-0, 20),  # Too high learning rate
+        (1000, 1e-2, 2),  # Low hidden dimension
+        (1000, 1e-2, 20),  # Optimal parameters
+        (200, 1e-2, 20),  # Test with 200 examples
+    ]
 
-
-    # test with 1000 examples
-    N_SAMPLES = 1000
-
-    # too high learning rate
-    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-0, HIDDEN_DIM=20)
-
-    # low hidden dim
-    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=2)
-
-    # optimal params
-    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE=1e-2, HIDDEN_DIM=20)
-
-
-    # test with 200 examples
-    N_SAMPLES = 200
-    test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES)
+    for N_SAMPLES, LEARNING_RATE, HIDDEN_DIM in test_cases:
+        print(f"Manually testing with N_SAMPLES={N_SAMPLES}, LEARNING_RATE={LEARNING_RATE}, HIDDEN_DIM={HIDDEN_DIM}")
+        # Directly call the test function
+        test_sgd_softmax_optimization_on_artifical_data(N_SAMPLES, LEARNING_RATE, HIDDEN_DIM)

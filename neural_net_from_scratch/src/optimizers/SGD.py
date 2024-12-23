@@ -11,9 +11,14 @@ class SGD:
         self.tolerance = tolerance
         self.model = model
     
-    def step(self, params_n, gradients):
-        params_n_1 = params_n - self.learning_rate * gradients
-        return params_n_1
+    def step(self, params_n=None, gradients=None):
+        if params_n is not None and gradients is not None:
+            params_n_1 = params_n - self.learning_rate * gradients
+            return params_n_1
+
+        for layer in self.model.layers:
+            layer.update_parameters(self.learning_rate)
+
 
     def get_start_end_batch_index(self, batch_index):
         start = batch_index * self.batch_size
