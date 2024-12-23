@@ -26,6 +26,14 @@ class Activation:
     def sigmoid_derivative(x: np.ndarray) -> np.ndarray:
         s = Activation.sigmoid(x)
         return s * (1 - s)
+    
+    @staticmethod
+    def identity(x):
+        return x
+    
+    @staticmethod
+    def identity_derivative(x):
+        return 1
 
 class Layer:
     def __init__(self, 
@@ -47,6 +55,9 @@ class Layer:
         elif activation == 'sigmoid':
             self.activation = Activation.sigmoid
             self.activation_derivative = Activation.sigmoid_derivative
+        elif activation =="identity":
+            self.activation = Activation.identity
+            self.activation_derivative = Activation.identity_derivative
         else:
             raise ValueError(f"Unsupported activation function: {activation}")
         

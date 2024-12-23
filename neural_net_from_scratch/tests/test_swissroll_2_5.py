@@ -14,8 +14,8 @@ from neural_net_from_scratch.src.models.neural_network import DynamicNeuralNetwo
 import scipy
 N_SAMPLES = 100
 N_FEATURES = 2
-N_ITERATIONS = 500
-LEARNING_RATE = 1e-2
+N_ITERATIONS = 2000
+LEARNING_RATE = 1e-3
 HIDDEN_DIM = 20
 N_CLASSES = 2
 
@@ -75,6 +75,9 @@ def train_network(network,
 
         train_accuracies.append(train_accuracy)
         test_accuracies.append(test_accuracy)
+        # print max min and mean of the gradients
+        print(f"Max: {np.max(grad)}, Min: {np.min(grad)}, Mean: {np.mean(grad)}")
+        
 
         print(f"Epoch: {epoch}, Loss: {np.mean(losses[-100:]):.2}, Train Accuracy: {np.mean(train_accuracies[-100:]):.2}, Test Accuracy: {np.mean(test_accuracies[-100:]):.2}")
 
@@ -130,12 +133,12 @@ def one_hot( y:np.ndarray, n_classes:int) -> np.ndarray:
 def main():
     data = scipy.io.loadmat('neural_net_from_scratch/data/SwissRollData.mat')
     
-    X_train = data['Ct'].T
-    y_train = data['Yt'].T
+    X_train = data['Yt'].T
+    y_train = data['Ct'].T
 
     
-    X_val = data['Cv'].T
-    y_val = data['Yv'].T
+    X_val = data['Yv'].T
+    y_val = data['Cv'].T
     
     
     train_mean, train_std = X_train.mean(axis=0), X_train.std(axis=0)
@@ -146,7 +149,8 @@ def main():
     layer_configs = [
         {"type": "layer", "input_dim": N_FEATURES, "output_dim": HIDDEN_DIM, "activation": "relu"},
         {"type": "layer", "input_dim": HIDDEN_DIM, "output_dim": HIDDEN_DIM, "activation": "relu"},
-        {"type": "layer", "input_dim": HIDDEN_DIM, "output_dim": N_CLASSES, "activation": "tanh"},
+        {"type": "residual", "input_dim": HIDDEN_DIM, "output_dim": HIDDEN_DIM, "activation": "relu"},
+        {"type": "layer", "input_dim": HIDDEN_DIM, "output_dim": N_CLASSES, "activation": "identity"},
     ]
 
     # # Create the network
