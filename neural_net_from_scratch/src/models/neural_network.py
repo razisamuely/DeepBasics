@@ -34,6 +34,16 @@ class Activation:
     @staticmethod
     def identity_derivative(x):
         return 1
+    
+    @staticmethod
+    def softmax(x: np.ndarray) -> np.ndarray:
+        exps = np.exp(x - np.max(x, axis=0, keepdims=True))
+        return exps / np.sum(exps, axis=0, keepdims=True)
+    
+    @staticmethod
+    def softmax_derivative(x: np.ndarray) -> np.ndarray:
+        return Activation.softmax(x) * (1 - Activation.softmax(x))
+    
 
 class Layer:
     def __init__(self, 
@@ -58,6 +68,9 @@ class Layer:
         elif activation =="identity":
             self.activation = Activation.identity
             self.activation_derivative = Activation.identity_derivative
+        elif activation == 'softmax':
+            self.activation = Activation.softmax
+            self.activation_derivative = Activation.softmax_derivative
         else:
             raise ValueError(f"Unsupported activation function: {activation}")
         
