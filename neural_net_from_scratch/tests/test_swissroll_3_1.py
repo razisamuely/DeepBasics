@@ -95,7 +95,7 @@ def load_and_preprocess_data(data_path: str) -> Tuple[np.ndarray, np.ndarray, np
     
     return X_train, y_train, X_val, y_val
 
-def main() -> None:
+def test_full_neural_net_on_swiss_roll_data() -> None:
     layer_configs = [
         {"type": "layer", "input_dim": N_FEATURES, "output_dim": 64, "activation": "relu"},
         {"type": "layer", "input_dim": 64, "output_dim": 32, "activation": "relu"},
@@ -139,4 +139,4 @@ def main() -> None:
     )
 
 if __name__ == "__main__":
-    main()
+    test_full_neural_net_on_swiss_roll_data()
