@@ -3,7 +3,7 @@
 set -e
 
 BASE_DIR=$(pwd)
-MNIST_DIR="RNNBasics/data"
+MNIST_DIR="RNNBasics/data/mnist"
 STOCK_DIR="RNNBasics/data/sp500"
 SYNTHETIC_DIR="RNNBasics/data/synthetic_data"
 

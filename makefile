@@ -18,8 +18,8 @@ python_path:
 	@echo 'export PYTHONPATH=$(PYTHONPATH)' >> venv/bin/activate
 
 get_data:
-	. venv/bin/activate && python -c "import gdown; gdown.download('https://drive.google.com/uc?id=1s06UaGqogkFmrhnuRK7Tm9fBNi6NYug0', '$(DATA_DIR)/data.zip', quiet=False)"
 	mkdir -p $(DATA_DIR)
+	. venv/bin/activate && python -c "import gdown; gdown.download('https://drive.google.com/uc?id=1s06UaGqogkFmrhnuRK7Tm9fBNi6NYug0', '$(DATA_DIR)/data.zip', quiet=False)"
 	unzip -o $(DATA_DIR)/data.zip -d $(DATA_DIR)
 	rm $(DATA_DIR)/data.zip
 
