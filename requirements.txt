@@ -9,3 +9,4 @@ scipy
 pytest
 gdown
 seaborn
+scikit-learn
