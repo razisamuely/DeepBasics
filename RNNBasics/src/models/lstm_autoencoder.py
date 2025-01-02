@@ -60,3 +60,14 @@ class LSTMAutoencoder(nn.Module):
         x_tilde = self.output_layer(decoder_outputs)  # shape: (batch_size, seq_len, input_size)
 
         return x_tilde
+
+    def encode(self, x):
+        """
+        Encode input x to the latent space.
+
+        :param x: Input of shape (batch_size, seq_len, input_size).
+        :return: Latent vector z of shape (batch_size, hidden_size).
+        """
+        _, (h_n, c_n) = self.encoder_lstm(x)
+        z = h_n[-1]
+        return z

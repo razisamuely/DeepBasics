@@ -168,3 +168,6 @@ venv/*
 neural_net_from_scratch/data/*
 .vscode/*
 .DS_Store
+.vscode/*
+*.pt 
+*.pth

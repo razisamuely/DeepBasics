@@ -2,7 +2,9 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 import random
-
+import matplotlib.pyplot as plt
+import h5py
+import os
 
 class SyntheticSequenceDataset(Dataset):
     """
@@ -13,11 +15,9 @@ class SyntheticSequenceDataset(Dataset):
     def __init__(self, num_samples=10000, seq_len=50, split='train'):
         super().__init__()
 
-        # Fix random seed for reproducibility (optional)
         np.random.seed(42)
         random.seed(42)
 
-        # Generate raw data in [0, 1]
         data = np.random.rand(num_samples, seq_len)
 
         # Post-process each sequence
@@ -61,3 +61,74 @@ def get_dataloaders(batch_size=128):
     val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
     return train_loader, val_loader, test_loader
+
+
+def plot_sample_sequences(dataset, num_samples=5):
+    """Plot a few sample sequences from the dataset"""
+    plt.figure(figsize=(12, 6))
+    for i in range(num_samples):
+        seq = dataset[i].numpy()
+        plt.plot(seq, label=f'Sequence {i+1}')
+    
+    plt.title('Sample Sequences from Synthetic Dataset')
+    plt.xlabel('Time Step')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('sample_sequences.png')
+    plt.close()
+
+
+def save_dataset(save_path='RNNBasics/data/synthetic_data/synthetic_sequences.h5'):
+    """Save all splits of the dataset to an HDF5 file"""
+    # Create directory if it doesn't exist
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    
+    # Create datasets for each split
+    train_ds = SyntheticSequenceDataset(split='train')
+    val_ds = SyntheticSequenceDataset(split='val')
+    test_ds = SyntheticSequenceDataset(split='test')
+    
+    # Save to HDF5
+    with h5py.File(save_path, 'w') as f:
+        f.create_dataset('train', data=train_ds.data.numpy())
+        f.create_dataset('val', data=val_ds.data.numpy())
+        f.create_dataset('test', data=test_ds.data.numpy())
+
+
+if __name__ == '__main__':
+    # Create and plot sample sequences
+    train_ds = SyntheticSequenceDataset(split='train')
+    plot_sample_sequences(train_ds)
+    
+    # Save the dataset
+    save_dataset()
+    
+    print("Dataset has been saved and sample sequences have been plotted.")
+    
+    # Verify the saved data
+    with h5py.File('RNNBasics/data/synthetic_data/synthetic_sequences.h5', 'r') as f:
+        print("\nDataset splits and shapes:")
+        for key in f.keys():
+            print(f"{key}: {f[key].shape}")
+        
+        # Create a figure with subplots for each split
+        plt.figure(figsize=(15, 10))
+        
+        for idx, key in enumerate(['train', 'val', 'test']):
+            plt.subplot(3, 1, idx + 1)
+            
+            # Plot first 5 sequences from each split
+            data = f[key][:]
+            for i in range(5):
+                plt.plot(data[i], label=f'Sequence {i+1}')
+            
+            plt.title(f'{key.capitalize()} Split - Sample Sequences')
+            plt.xlabel('Time Step')
+            plt.ylabel('Value')
+            plt.legend()
+            plt.grid(True)
+        
+        plt.tight_layout()
+        plt.savefig('h5_sequences.png')
+        plt.close()
