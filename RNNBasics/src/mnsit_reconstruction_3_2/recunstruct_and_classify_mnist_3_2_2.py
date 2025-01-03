@@ -107,7 +107,7 @@ def main():
     plot_reconstructions(
         originals, 
         reconstructions,
-        save_path=os.path.join(args.artifacts_dir, 'reconstructions_final_3_2_1.png')
+        save_path=os.path.join(args.artifacts_dir, 'reconstructions_final_3_2_2.png')
     )
     
     plot_training_history(
@@ -117,7 +117,7 @@ def main():
     )
     
     torch.save(best_model.state_dict(), 
-              os.path.join(args.artifacts_dir, 'lstm_ae_classifier.pt'))
+              os.path.join(args.artifacts_dir, 'lstm_ae_classifier_3_2_2.pt'))
     
     print("\nBest Hyperparameters:")
     for key, value in study.best_params.items():

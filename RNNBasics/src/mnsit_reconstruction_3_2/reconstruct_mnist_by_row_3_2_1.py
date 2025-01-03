@@ -83,8 +83,8 @@ def main():
     
     test_loss, originals, reconstructions = evaluate(best_model, test_loader, criterion, args.device)
     
-    reconstruction_path = os.path.join(args.artifacts_dir, 'reconstructions_final.png')
-    model_path = os.path.join(args.artifacts_dir, 'lstm_ae_mnist.pt')
+    reconstruction_path = os.path.join(args.artifacts_dir, 'reconstructions_final_3_2_1.png')
+    model_path = os.path.join(args.artifacts_dir, 'lstm_ae_mnist_3_2_1.pt')
     
     plot_reconstructions(originals, reconstructions, save_path=reconstruction_path)
     torch.save(best_model.state_dict(), model_path)
