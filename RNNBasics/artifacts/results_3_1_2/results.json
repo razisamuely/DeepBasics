@@ -1,11 +1,11 @@
 {
     "best_params": {
-        "hidden_size": 76,
-        "learning_rate": 0.0011117464756757265,
-        "grad_clip": 1.4178723371217765
+        "hidden_size": 95,
+        "learning_rate": 0.00010253468438726556,
+        "grad_clip": 2.0185834809684975
     },
-    "best_value": 0.09767974519729614,
-    "test_loss": 0.09836166447401047,
+    "best_value": 0.10758643954992295,
+    "test_loss": 0.10374012559652329,
     "best_trial_number": 0,
     "configuration": {
         "optimizer": "adam",

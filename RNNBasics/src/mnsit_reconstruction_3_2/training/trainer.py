@@ -10,7 +10,7 @@ from typing import Tuple, List
 import sys
 from typing import Optional
 import optuna
-
+import tqdm
 def train(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
@@ -25,7 +25,7 @@ def train(
     """Training function adapted for MNIST."""
     best_val_loss = float('inf')
     
-    for epoch in range(n_epochs):
+    for epoch in tqdm.tqdm(range(n_epochs), desc="Epochs"):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device, grad_clip)
         val_loss, _, _ = evaluate(model, val_loader, criterion, device)
         
@@ -47,8 +47,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, grad_clip):
     model.train()
     total_loss = 0.0
 
-    for batch in dataloader:
-        # batch is already (batch_size, 28, 28)
+    for batch in tqdm.tqdm(dataloader, desc="Processing Batches"):
         batch = batch.to(device)
         
         optimizer.zero_grad()
@@ -57,7 +56,6 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, grad_clip):
         loss = criterion(reconstructed, batch)
         loss.backward()
         
-        # Gradient clipping
         nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
         
         optimizer.step()
@@ -69,7 +67,7 @@ def evaluate(model: nn.Module,
             test_loader: DataLoader,
             criterion: nn.Module,
             device: str) -> Tuple[float, List[torch.Tensor], List[torch.Tensor]]:
-    """Evaluate model and return loss and sample reconstructions."""
+
     model.eval()
     total_loss = 0.0
     originals = []
@@ -82,7 +80,6 @@ def evaluate(model: nn.Module,
             loss = criterion(reconstructed, batch)
             total_loss += loss.item()
             
-            # Save first batch for visualization
             if i == 0:
                 originals = batch.cpu()
                 reconstructions = reconstructed.cpu()

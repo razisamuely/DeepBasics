@@ -71,3 +71,4 @@ class LSTMAutoencoder(nn.Module):
         _, (h_n, c_n) = self.encoder_lstm(x)
         z = h_n[-1]
         return z
+    
