@@ -1,6 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 
+
 def plot_reconstructions(originals: torch.Tensor, 
                         reconstructions: torch.Tensor,
                         n_images: int = 10,
@@ -25,9 +26,6 @@ def plot_reconstructions(originals: torch.Tensor,
     plt.savefig(save_path)
     plt.close()
 
-
-
-import matplotlib.pyplot as plt
 
 def plot_training_history(history, save_dir, name = "training_history"):
     # Plot losses
