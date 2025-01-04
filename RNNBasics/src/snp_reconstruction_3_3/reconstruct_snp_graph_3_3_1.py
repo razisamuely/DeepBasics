@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-
+from config import *
 
 if __name__ == '__main__':
 
-    df = pd.read_csv('../../data/SP 500 Stock Prices 2014-2017.csv')
+    df = pd.read_csv(data_path)
     print(df.groupby('symbol').size().sort_values())
     print(df[~df['high'].isnull()].groupby('symbol').size().sort_values())
 
@@ -26,5 +26,5 @@ if __name__ == '__main__':
     plt.legend(title='Stock Symbol')
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig('../../artifacts/snp_3_3_1/snp_max_value_plot.png')
+    plt.savefig('../../artifacts/snp_3_3/snp_max_value_plot_3_3_1.png')
     plt.close()

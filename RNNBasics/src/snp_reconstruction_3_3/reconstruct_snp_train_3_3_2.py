@@ -2,20 +2,9 @@ from utils.train import *
 import sys
 sys.path.append('..')
 from models.lstm_autoencoder import *
-
+from config import *
 
 def main():
-    # Hyperparameters
-    data_path = "../../data/SP 500 Stock Prices 2014-2017.csv"
-    seq_size = 80
-    batch_size = 64
-    hidden_size = 64
-    num_layers = 1
-    learning_rate = 1e-2
-    num_epochs = 10
-    n_splits = 3  # how many random splits you want
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
     # Read full CSV once
     full_df = pd.read_csv(data_path)
 

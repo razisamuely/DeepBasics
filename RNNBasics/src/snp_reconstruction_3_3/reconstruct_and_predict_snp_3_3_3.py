@@ -3,7 +3,7 @@ import sys
 sys.path.append('..')
 from models.lstm_autoencoder_prediction import *
 import matplotlib.pyplot as plt
-
+from config import *
 
 def plot_cv_results(all_results):
     """
@@ -13,16 +13,12 @@ def plot_cv_results(all_results):
     """
     fig, axes = plt.subplots(1, 2, figsize=(15, 6), sharex=True)
 
-    # Colors for consistent visualization
-    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'orange', 'purple', 'brown']
-
     # 1) Reconstruction Loss
     for i, res in enumerate(all_results):
         epochs = range(1, len(res['train_loss']) + 1)
-        axes[0].plot(epochs, res['train_loss'], marker='o', label=f"Train Split {res['split']}",
-                     color=colors[i % len(colors)])
-        axes[0].plot(epochs, res['val_loss'], marker='x', linestyle='--', label=f"Val Split {res['split']}",
-                     color=colors[i % len(colors)])
+        axes[0].plot(epochs, res['train_loss'], marker='o', label=f"Train Split {res['split']}")
+        axes[0].plot(epochs, res['val_loss'], marker='x', linestyle='--', label=f"Val Split {res['split']}")
+        break
 
     axes[0].set_xlabel('Epoch')
     axes[0].set_ylabel('Loss')
@@ -32,10 +28,9 @@ def plot_cv_results(all_results):
     # 2) Prediction Loss
     for i, res in enumerate(all_results):
         epochs = range(1, len(res['train_pred_loss']) + 1)
-        axes[1].plot(epochs, res['train_pred_loss'], marker='o', label=f"Train Split {res['split']}",
-                     color=colors[i % len(colors)])
-        axes[1].plot(epochs, res['val_pred_loss'], marker='x', linestyle='--', label=f"Val Split {res['split']}",
-                     color=colors[i % len(colors)])
+        axes[1].plot(epochs, res['train_pred_loss'], marker='o', label=f"Train Split {res['split']}")
+        axes[1].plot(epochs, res['val_pred_loss'], marker='x', linestyle='--', label=f"Val Split {res['split']}")
+        break
 
     axes[1].set_xlabel('Epoch')
     axes[1].set_ylabel('Loss')
@@ -43,20 +38,12 @@ def plot_cv_results(all_results):
     axes[1].legend()
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig('../../artifacts/snp_3_3/train_val_losses_3_3_3.png')
+    plt.close()
+    # plt.show()
 
 
 def main():
-    # Hyperparameters
-    data_path = "../../data/SP 500 Stock Prices 2014-2017.csv"
-    seq_size = 80
-    batch_size = 64
-    hidden_size = 64
-    num_layers = 1
-    learning_rate = 1e-2
-    num_epochs = 10
-    n_splits = 3  # how many random splits you want
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Read full CSV once
     full_df = pd.read_csv(data_path)
@@ -89,6 +76,8 @@ def main():
           min(r['val_loss'][-1] for r in all_results))
 
     plot_cv_results(all_results)
+
+    torch.save(best_model.state_dict(), 'best_predicting_model_3_3_3.pt')
 
 
 if __name__ == "__main__":

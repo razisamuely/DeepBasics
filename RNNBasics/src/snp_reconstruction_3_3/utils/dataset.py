@@ -39,7 +39,7 @@ class SNPDataset(Dataset):
 
         X = torch.tensor(
             high_values_sample_normalized, dtype=torch.float
-        ).unsqueeze(-1).T
+        ).unsqueeze(-1)
 
         if self.is_prediction:
             # Next value after the sequence

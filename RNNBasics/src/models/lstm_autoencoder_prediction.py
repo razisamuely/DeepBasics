@@ -39,8 +39,7 @@ class LSTMAutoencoderWithPrediction(nn.Module):
     def forward(self, x):
         batch_size, seq_len, _ = x.size()
 
-        # ---- Encoder ----
-        # We only need the final hidden state h_n (last layer).
+
         _, (h_n, c_n) = self.encoder_lstm(x)
         z = h_n[-1]  # shape: (batch_size, hidden_size)
 

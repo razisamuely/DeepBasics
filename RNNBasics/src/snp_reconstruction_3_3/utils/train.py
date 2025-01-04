@@ -61,7 +61,7 @@ def cross_validate_model(
         test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
 
         # Instantiate and train model
-        model = model_class(input_size=seq_size,
+        model = model_class(input_size=1,
                             hidden_size=hidden_size,
                             num_layers=num_layers)
 
@@ -120,7 +120,7 @@ def cross_validate_model(
                 best_model_state = copy.deepcopy(model.state_dict())
 
     # Re-load the best model weights into a fresh model instance
-    best_model = model_class(input_size=seq_size,
+    best_model = model_class(input_size=1,
                              hidden_size=hidden_size,
                              num_layers=num_layers)
     best_model.load_state_dict(best_model_state)
