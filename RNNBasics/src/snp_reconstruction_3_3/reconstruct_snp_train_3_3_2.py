@@ -6,13 +6,13 @@ from models.lstm_autoencoder import *
 
 def main():
     # Hyperparameters
-    data_path = "/Users/amitaharoni/PycharmProjects/Amit Python/University Courses/Deep Learning/DeepBasics/RNNBasics/data/SP 500 Stock Prices 2014-2017.csv"  # <-- replace with your actual CSV path
+    data_path = "../../data/SP 500 Stock Prices 2014-2017.csv"
     seq_size = 80
     batch_size = 64
     hidden_size = 64
     num_layers = 1
     learning_rate = 1e-2
-    num_epochs = 200
+    num_epochs = 10
     n_splits = 3  # how many random splits you want
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -42,26 +42,11 @@ def main():
     print("\nBest validation loss across splits:",
           min(r['val_loss'] for r in all_results))
 
-    # Now best_model holds the best-performing model from cross-validation.
-    # If we want to do reconstructions, we must pick or recreate a test dataset:
-    # As an example, re-creating the last random split used:
-    # (But typically you’d do a final train/test with a chosen split
-    #  or a final evaluation on unseen data.)
-    # We'll just do it for demonstration using the final split from cross_validate_model.
-
-    # Last random split
-    # (In practice, you might want to store the train/test stocks for the best split,
-    #  or pick the last one, or re-run a final splitted dataset.)
-    # Here, let's just pick the final all_symbols from that loop.
-    # A better approach is to store them inside cross_validate_model if you want to do more analysis.
-    # For demonstration, let's build a random test dataset from scratch:
-
-    # Re-shuffle
     all_symbols = np.array(sorted(full_df['symbol'].unique()))
     np.random.shuffle(all_symbols)
     cutoff = int(len(all_symbols) * 0.7)
     test_stocks = all_symbols[cutoff:]
-    _, test_ds = get_train_test_datasets(full_df, all_symbols[:cutoff], test_stocks, seq_size)
+    _, test_ds = get_train_test_datasets(full_df, all_symbols[:cutoff], test_stocks, seq_size=seq_size)
     # Now let's plot some reconstructions from the best model
     reconstruct_and_plot(best_model, test_ds, device=device, num_stocks=3)
 

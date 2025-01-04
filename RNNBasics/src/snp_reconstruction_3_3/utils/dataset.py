@@ -11,41 +11,54 @@ class SNPDataset(Dataset):
     Sequences are truncated (or padded, if needed) to seq_size.
     """
 
-    def __init__(self, df: pd.DataFrame, seq_size=80):
+    def __init__(self, df: pd.DataFrame, seq_size=80, is_prediction=False):
         self.seq_size = seq_size
-        # Unique symbols to iterate over
         self.stocks = df['symbol'].unique()
-        # Group the dataframe by symbol for faster indexing
         self.grouped = df.groupby('symbol')
+        self.is_prediction = is_prediction
 
     def __len__(self):
-        # We have one "item" per unique stock symbol
         return len(self.stocks)
 
     def __getitem__(self, idx):
-        """
-        Return a tensor of shape (seq_size, 1) containing the 'high' values
-        for the idx-th stock. If the number of data points is larger than seq_size,
-        we truncate. If smaller, we could skip or pad. Here we’ll just truncate.
-        """
         stock = self.stocks[idx]
-        stock_df = self.grouped.get_group(stock).sort_values('date')  # sort by date if needed
+        stock_df = self.grouped.get_group(stock).sort_values('date')
         high_values = stock_df['high'].values
 
-        max_start = len(high_values) - self.seq_size
+        # Example logic for picking a start index
+        max_start = len(high_values) - self.seq_size - (1 if self.is_prediction else 0)
         start_idx = random.randint(0, max_start)
-        high_values = high_values[start_idx: start_idx + self.seq_size]
 
-        high_values = (high_values - high_values.mean()) / high_values.std()
+        # Take seq_size points
+        high_values_sample = high_values[start_idx: start_idx + self.seq_size]
+        mean_ = high_values_sample.mean()
+        std_ = high_values_sample.std()
 
-        return torch.tensor(high_values, dtype=torch.float).unsqueeze(-1).T
-        # shape: (seq_size, 1), so LSTM can handle [batch, seq, feature]
+        # Normalize
+        high_values_sample_normalized = (high_values_sample - mean_) / std_
+
+        X = torch.tensor(
+            high_values_sample_normalized, dtype=torch.float
+        ).unsqueeze(-1).T
+
+        if self.is_prediction:
+            # Next value after the sequence
+            next_value = high_values[start_idx + self.seq_size]
+            next_value_normalized = (next_value - mean_) / std_
+
+            # Return (X, y)
+            y = torch.tensor(next_value_normalized, dtype=torch.float).unsqueeze(-1)
+            return X, y
+        else:
+            # Return only X
+            return X
 
 
 
 def get_train_test_datasets(df: pd.DataFrame,
                             train_stocks: np.ndarray,
                             test_stocks: np.ndarray,
+                            is_prediction: bool = False,
                             seq_size: int = 80):
     """
     Given a dataframe and two arrays of stock symbols (train_stocks, test_stocks),
@@ -54,8 +67,8 @@ def get_train_test_datasets(df: pd.DataFrame,
     train_df = df[df['symbol'].isin(train_stocks)]
     test_df = df[df['symbol'].isin(test_stocks)]
 
-    train_ds = SNPDataset(train_df, seq_size=seq_size)
-    test_ds = SNPDataset(test_df, seq_size=seq_size)
+    train_ds = SNPDataset(train_df, seq_size=seq_size, is_prediction=is_prediction)
+    test_ds = SNPDataset(test_df, seq_size=seq_size, is_prediction=is_prediction)
 
     return train_ds, test_ds
 
