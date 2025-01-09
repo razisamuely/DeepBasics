@@ -61,6 +61,7 @@ def main():
         num_layers=num_layers,
         device=device,
         random_seed=42,
+        optimizer=optimizer,
         is_prediction=True
     )
 

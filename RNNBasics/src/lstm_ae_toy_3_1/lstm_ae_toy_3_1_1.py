@@ -4,7 +4,7 @@ import h5py
 
 if __name__ == '__main__':
     # Verify the saved data
-    with h5py.File('RNNBasics/data/synthetic_data/synthetic_sequences.h5', 'r') as f:
+    with h5py.File('../../data/synthetic_data/synthetic_sequences.h5', 'r') as f:
         print("\nDataset splits and shapes:")
         for key in f.keys():
             print(f"{key}: {f[key].shape}")
@@ -12,7 +12,7 @@ if __name__ == '__main__':
         # Create a figure with subplots for each split
         plt.figure(figsize=(15, 10))
         
-        for idx, key in enumerate(['train', 'val', 'test']):
+        for idx, key in enumerate(['train', 'validation', 'test']):
             plt.subplot(3, 1, idx + 1)
             
             # Plot first 5 sequences from each split
@@ -27,5 +27,5 @@ if __name__ == '__main__':
             plt.grid(True)
         
         plt.tight_layout()
-        plt.savefig('RNNBasics/artifacts/synthetic_data_3_1_1.png')
+        plt.savefig('../../artifacts/synthetic_data_3_1_1.png')
         plt.close()

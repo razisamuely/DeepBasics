@@ -75,7 +75,12 @@ def get_train_test_datasets(df: pd.DataFrame,
 
 
 
-def reconstruct_and_plot(model, dataset, device='cpu', num_stocks=3):
+def reconstruct_and_plot(model,
+                         dataset,
+                         device='cpu',
+                         num_stocks=3,
+                         artifact_path='../../artifacts/snp_3_3/reconstructed_stocks_3_3_2.png'
+                         ):
     """
     Randomly select 'num_stocks' stocks from the dataset,
     reconstruct them using the trained model, and plot
@@ -106,4 +111,5 @@ def reconstruct_and_plot(model, dataset, device='cpu', num_stocks=3):
         axs[i].legend()
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig(artifact_path)
+    plt.close()

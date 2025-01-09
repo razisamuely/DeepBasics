@@ -9,3 +9,4 @@ learning_rate = 1e-2
 num_epochs = 100
 n_splits = 3  # how many random splits you want
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+optimizer = 'adam'

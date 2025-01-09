@@ -16,6 +16,7 @@ def cross_validate_model(
         num_layers=2,
         device='cpu',
         random_seed=42,
+        optimizer='adam',
         is_prediction=False
 ):
     """
@@ -74,7 +75,8 @@ def cross_validate_model(
                 test_loader,
                 num_epochs=num_epochs,
                 lr=lr,
-                device=device
+                device=device,
+                optimizer=optimizer
             )
 
             final_val_loss = val_recon_losses[-1]
@@ -222,7 +224,8 @@ def train_model(model,
                 test_loader: DataLoader,
                 num_epochs=10,
                 lr=1e-3,
-                device='cpu'):
+                device='cpu',
+                optimizer='adam'):
     """
     Train and evaluate the model for a fixed train/test split.
     If the dataset provides only X (reconstruction only), pred_loss stays at 0.
@@ -230,7 +233,11 @@ def train_model(model,
     """
     criterion = nn.MSELoss()
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    if optimizer == 'adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    else:
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+
     model.to(device)
 
     train_recon_losses = []

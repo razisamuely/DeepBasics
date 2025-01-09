@@ -80,4 +80,5 @@ if __name__ == '__main__':
     plt.title("Multi-Step Prediction")
     plt.xlabel("Time Step")
     plt.ylabel("Value")
-    plt.show()
+    plt.savefig('../../artifacts/snp_3_3/predict_next_steps_3_3_4.png')
+    plt.close()

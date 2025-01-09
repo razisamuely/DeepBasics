@@ -20,7 +20,8 @@ def main():
         hidden_size=hidden_size,
         num_layers=num_layers,
         device=device,
-        random_seed=42
+        random_seed=42,
+        optimizer=optimizer
     )
 
     print("\n=== Cross-Validation Results ===")
