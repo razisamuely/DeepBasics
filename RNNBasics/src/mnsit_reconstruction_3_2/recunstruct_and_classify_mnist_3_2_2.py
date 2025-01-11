@@ -113,7 +113,7 @@ def main():
     plot_training_history(
         history,
         save_dir=args.artifacts_dir,
-        name='training_history_3_2_1.png'
+        name='training_history_3_2_2'
     )
     
     torch.save(best_model.state_dict(), 

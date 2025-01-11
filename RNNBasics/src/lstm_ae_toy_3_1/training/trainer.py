@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 from typing import Optional
 import optuna
-
+import  tqdm
+import loguru
 def train(
     model: nn.Module,
     train_loader: torch.utils.data.DataLoader,
@@ -16,11 +17,15 @@ def train(
 ) -> float:
     """Training function for both regular training and optuna trials."""
     best_val_loss = float('inf')
-    
-    for epoch in range(n_epochs):
+    train_losses = []
+    val_losses = []
+    for epoch in tqdm.trange(n_epochs):
         model.train()
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer, device, grad_clip)
         val_loss = evaluate(model, val_loader, criterion, device)
+        train_losses.append(train_loss)
+        val_losses.append(val_loss)
+
         
         if trial is not None:
             trial.report(val_loss, epoch)
@@ -29,8 +34,16 @@ def train(
         
         if val_loss < best_val_loss:
             best_val_loss = val_loss
+
+        # log last n epochs loss
+        if epoch % 10 == 0:
+            train_loss = sum(train_losses[-10:]) / 10
+            val_loss = sum(val_losses[-10:]) / 10
+            loguru.logger.info(f"Epoch {epoch}: train_loss={train_loss:.4f}, val_loss={val_loss:.4f}")
+
+        
     
-    return best_val_loss
+    return train_losses, val_losses
 
 def train_one_epoch(model, dataloader, criterion, optimizer, device, grad_clip):
     model.train()
@@ -53,6 +66,8 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, grad_clip):
         optimizer.step()
 
         total_loss += loss.item() * x.size(0)
+    
+    return total_loss / len(dataloader.dataset)
 
 def evaluate(model, dataloader, criterion, device):
     model.eval()

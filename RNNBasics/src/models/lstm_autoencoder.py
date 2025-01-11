@@ -8,7 +8,7 @@ class LSTMAutoencoder(nn.Module):
     decoder at each time step.
     """
 
-    def __init__(self, input_size, hidden_size, num_layers=1):
+    def __init__(self, input_size, hidden_size, num_layers=5):
         """
         :param input_size:  Dimensionality of the input (e.g., number of features per time step).
         :param hidden_size: Dimensionality of the LSTM hidden state.

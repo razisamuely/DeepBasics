@@ -45,8 +45,8 @@ def plot_training_history(history, save_dir, name = "training_history"):
 
     # Plot accuracy
     plt.subplot(1, 2, 2)
-    plt.plot(history['train_acc'], label='Train Accuracy')
-    plt.plot(history['val_acc'], label='Val Accuracy')
+    plt.plot(history['train_accuracy'], label='Train Accuracy')
+    plt.plot(history['val_accuracy'], label='Val Accuracy')
     plt.title('Training and Validation Accuracy')
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy')

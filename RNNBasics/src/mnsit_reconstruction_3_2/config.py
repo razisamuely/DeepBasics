@@ -1,9 +1,9 @@
 import torch
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 N_EPOCHS = 30
-N_TRIALS = 30
+N_TRIALS = 20
 
 HIDDEN_SIZE_MIN = 32
 HIDDEN_SIZE_MAX = 256
