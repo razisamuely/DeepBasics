@@ -13,7 +13,7 @@ from RNNBasics.src.mnsit_reconstruction_3_2.utils.visualization import (
 from RNNBasics.src.mnsit_reconstruction_3_2.config import (
     DEVICE, BATCH_SIZE, N_EPOCHS, N_TRIALS, HIDDEN_SIZE_MIN, HIDDEN_SIZE_MAX,
     LEARNING_RATE_MIN, LEARNING_RATE_MAX, GRAD_CLIP_MIN, GRAD_CLIP_MAX,
-    INPUT_SIZE, ARTIFACTS_DIR
+    INPUT_SIZE, ARTIFACTS_DIR, 
 )
 from RNNBasics.src.mnsit_reconstruction_3_2.utils.data_loader import get_dataloaders_with_labels
 
@@ -32,9 +32,9 @@ def get_args():
     parser.add_argument('--grad-clip-min', type=float, default=GRAD_CLIP_MIN)
     parser.add_argument('--grad-clip-max', type=float, default=GRAD_CLIP_MAX)
     
-    parser.add_argument('--recon-weight', type=float, default=1.0,
+    parser.add_argument('--recon-weight', type=float, default=0.7,
                       help='weight for reconstruction loss')
-    parser.add_argument('--class-weight', type=float, default=1.0,
+    parser.add_argument('--class-weight', type=float, default=0.3,
                       help='weight for classification loss')
     
     parser.add_argument('--artifacts-dir', type=str, 
@@ -68,7 +68,7 @@ def main():
     os.makedirs(args.artifacts_dir, exist_ok=True)
     
     train_loader, val_loader, test_loader = get_dataloaders_with_labels(args.batch_size,
-                                                                        is_pixel_sequence = True
+                                                                        is_pixel_sequence = False
                                                                         )
     
     study = optuna.create_study(direction='minimize')
@@ -78,11 +78,11 @@ def main():
     
     best_params = study.best_params
     best_model = LSTMAutoencoderWithClassifier(
-        input_size=1,
-        hidden_size=best_params['hidden_size']
+        input_size=28,
+        hidden_size=10
     ).to(args.device)
     
-    optimizer = torch.optim.Adam(best_model.parameters(), lr=best_params['learning_rate'])
+    optimizer = torch.optim.Adam(best_model.parameters(), lr=0.00001)
     criterion = CombinedLoss(
         reconstruction_weight=args.recon_weight,
         classification_weight=args.class_weight
@@ -91,7 +91,7 @@ def main():
     # Train final model and get history
     _, history = train(
         best_model, train_loader, val_loader, optimizer, criterion,
-        args.device, args.n_epochs, best_params['grad_clip']
+        args.device, args.n_epochs, 1
     )
     
     # Final evaluation

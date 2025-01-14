@@ -6,7 +6,7 @@ RESULTS_DIR = Path("RNNBasics/artifacts/results_3_1_2")
 
 # Training defaults
 DEFAULT_BATCH_SIZE = 16
-DEFAULT_N_EPOCHS = 1000
+DEFAULT_N_EPOCHS = 4000
 DEFAULT_N_TRIALS = 4
 DEFAULT_DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DEFAULT_HIDDEN_SIZE = 49
